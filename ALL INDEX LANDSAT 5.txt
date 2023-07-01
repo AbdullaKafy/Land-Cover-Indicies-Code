@@ -1,0 +1,113 @@
+Map.addLayer(Austin); 
+Map.centerObject(Austin, 10);
+
+// Filter the Landsat 5 collection for images with less than 10% cloud cover.
+var collection = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR')
+  .filterBounds(Austin)
+  .filterDate('1990-01-01', '1990-12-30')
+  .filterMetadata('CLOUD_COVER', 'less_than',1);
+  
+Map.addLayer(collection);
+print(collection);
+
+// Load a specific Landsat 5 image
+var image = ee.Image('LANDSAT/LT05/C01/T1_SR/LT05_027039_19901019')
+.clip(Austin)
+print(image, 'image')
+
+// Calculate EVI
+var nir = image.select('B4');
+var red = image.select('B3');
+var blue = image.select('B1');
+var evi = image.expression(
+  '2.5 * ((NIR - RED) / (NIR + 6*RED - 7.5*BLUE + 1))', {
+  'NIR': nir,
+  'RED': red,
+  'BLUE': blue
+});
+
+// Visualize the EVI result
+var eviParams = {min: -1, max: 1, palette: ['blue', 'white', 'green']};
+Map.addLayer(evi, eviParams, 'EVI');
+
+// Calculate NDVI
+var ndvi = image.normalizedDifference(['B4', 'B3']);
+
+// Visualize the NDVI result
+var ndviParams = {min: -1, max: 1, palette: ['blue', 'white', 'green']};
+Map.addLayer(ndvi, ndviParams, 'NDVI');
+
+// Calculate MNDWI
+var green = image.select('B2');
+var swir1 = image.select('B5');
+var mndwi = image.expression(
+  '(GREEN - SWIR1) / (GREEN + SWIR1)', {
+  'GREEN': green,
+  'SWIR1': swir1
+});
+
+// Visualize the MNDWI result
+var mndwiParams = {min: -1, max: 1, palette: ['blue', 'white', 'green']};
+Map.addLayer(mndwi, mndwiParams, 'MNDWI');
+
+// Calculate NDBI
+var swir2 = image.select('B7');
+var ndbi = image.expression(
+  '(SWIR2 - NIR) / (SWIR2 + NIR)', {
+  'SWIR2': swir2,
+  'NIR': nir
+});
+
+// Visualize the NDBI result
+var ndbiParams = {min: -1, max: 1, palette: ['blue', 'white', 'green']};
+Map.addLayer(ndbi, ndbiParams, 'NDBI');
+
+// Calculate NDBSI
+var ndbsi = image.expression(
+  '(SWIR1 - SWIR2) / (SWIR1 + SWIR2)', {
+  'SWIR1': swir1,
+  'SWIR2': swir2
+});
+
+// Visualize the NDBSI result
+var ndbsiParams = {min: -1, max: 1, palette: ['blue', 'white', 'green']};
+Map.addLayer(ndbsi, ndbsiParams, 'NDBSI');
+
+// Calculate NDMI
+var ndmi = image.normalizedDifference(['B4', 'B5']);
+
+// Visualize the NDMI result
+var ndmiParams = {min: -1, max: 1, palette: ['blue', 'white', 'green']};
+Map.addLayer(ndmi, ndmiParams, 'NDMI');
+
+// Exporting results
+Export.image.toDrive({
+  image: evi,
+  description: "Austin_LT05_027039_EVI_1990",
+  folder: "GEE_AUSTIN_EVI (1990-2011)",
+});
+Export.image.toDrive({
+  image: ndvi,
+  description: "Austin_LT05_027039_NDVI_1990",
+  folder: "GEE_AUSTIN_NDVI (1990-2011)",
+});
+Export.image.toDrive({
+  image: mndwi,
+  description: "Austin_LT05_027039_MNDWI_1990",
+  folder: "GEE_AUSTIN_MNDWI (1990-2011)",
+});
+Export.image.toDrive({
+  image: ndbi,
+  description: "Austin_LT05_027039_NDBI_1990",
+  folder: "GEE_AUSTIN_NDBI (1990-2011)",
+});
+Export.image.toDrive({
+  image: ndbsi,
+  description: "Austin_LT05_027039_NDBSI_1990",
+  folder: "GEE_AUSTIN_NDBSI (1990-2011)",
+});
+Export.image.toDrive({
+  image: ndmi,
+  description: "Austin_LT05_027039_NDMI_1990",
+  folder: "GEE_AUSTIN_NDMI (1990-2011)",
+});
