@@ -1,0 +1,180 @@
+// Add the region of interest to the map
+Map.addLayer(Austin);
+Map.centerObject(Austin, 10);
+
+// Search for Landsat 8 images
+var landsat8sr = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
+ .filterBounds(Austin)
+ .filterDate('2012-01-1','2013-12-30')
+ .filterMetadata('CLOUD_COVER', 'less_than', 3)
+
+// Add the image collection to the map
+Map.addLayer(landsat8sr);
+print(landsat8sr);
+
+// Load a specific Landsat 8 image
+var image = ee.Image('LANDSAT/LC08/C02/T1_L2/LC08_027039_20130628')
+.clip(Austin)
+print(image, 'image')
+
+// Calculate indices
+var nir = image.select('SR_B5');
+var red = image.select('SR_B4');
+var green = image.select('SR_B3');
+var blue = image.select('SR_B2');
+var swir1 = image.select('SR_B6');
+var swir2 = image.select('SR_B7');
+
+// Ratio Vegetation Index (Jordan 1969)
+var rvi = nir.divide(red);
+
+// Normalized near-infrared (Sripada et al. 2005)
+var nnir = nir.divide(nir.add(red).add(green));
+
+// Soil Adjusted Vegetation Index (Huete 1988)
+var savi = nir.subtract(red).divide(nir.add(red).add(0.5)).multiply(1.5);
+
+// Normalized Difference Vegetation Index
+var ndvi = nir.subtract(red).divide(nir.add(red));
+
+// Wide Dynamic Range Vegetation Index (Huang et al. 2017)
+var wdrvi = nir.multiply(0.2).subtract(red).divide(nir.multiply(0.2).add(red));
+
+// Normalized red band (Sripada et al. 2005)
+var nr = red.divide(nir.add(red).add(green));
+
+// Green Normalized Difference Vegetation Index (Gitelson et al. 1996)
+var gndvi = nir.subtract(green).divide(nir.add(green));
+
+// Difference Vegetation Index (Tucker 1979)
+var dvi = nir.subtract(red);
+
+// Renormalized Difference Vegetation Index (Roujean and Breon 1995)
+var rdvi = nir.subtract(red).pow(2).divide(nir.add(red)).sqrt();
+
+// Normalized Multi-band Drought Index (Wang and Qu 2007)
+var nmdi = nir.subtract(swir1.subtract(swir2)).divide(nir.add(swir1.subtract(swir2)));
+
+// Structure Insensitive Pigment Index (Penuelas et al. 2010)
+var sipi = nir.subtract(blue).divide(nir.add(blue));
+
+// Normalized green-band (Sripada et al. 2005)
+var ng = green.divide(nir.add(red).add(green));
+
+// Green Ratio Vegetation Index (Gitelson et al. 1996)
+var grvi = nir.divide(green).subtract(1);
+
+// Modified Soil Adjusted Vegetation Index (Qi et al. 1994)
+var msavi = nir.multiply(2).add(1).subtract(nir.multiply(2).add(1).pow(2).subtract(nir.subtract(red).multiply(8)).sqrt()).divide(2);
+
+// Plant Senescence Reflectance Index (Merzlyak et al. 2010)
+var psri = red.subtract(blue).divide(nir);
+
+// Visualize the results
+var indexParams = {min: -1, max: 1, palette: ['blue', 'white', 'green']};
+Map.addLayer(rvi, indexParams, 'RVI');
+Map.addLayer(nnir, indexParams, 'NNIR');
+Map.addLayer(savi, indexParams, 'SAVI');
+Map.addLayer(ndvi, indexParams, 'NDVI');
+Map.addLayer(wdrvi, indexParams, 'WDRVI');
+Map.addLayer(nr, indexParams, 'NR');
+Map.addLayer(gndvi, indexParams, 'GNDVI');
+Map.addLayer(dvi, indexParams, 'DVI');
+Map.addLayer(rdvi, indexParams, 'RDVI');
+Map.addLayer(nmdi, indexParams, 'NMDI');
+Map.addLayer(sipi, indexParams, 'SIPI');
+Map.addLayer(ng, indexParams, 'NG');
+Map.addLayer(grvi, indexParams, 'GRVI');
+Map.addLayer(msavi, indexParams, 'MSAVI');
+Map.addLayer(psri, indexParams, 'PSRI');
+
+// Exporting results
+Export.image.toDrive({
+  image: rvi,
+  description: "Austin_LC08_027039_RVI_2012",
+  folder: "GEE_AUSTIN_RVI (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: nnir,
+  description: "Austin_LC08_027039_NNIR_2012",
+  folder: "GEE_AUSTIN_NNIR (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: savi,
+  description: "Austin_LC08_027039_SAVI_2012",
+  folder: "GEE_AUSTIN_SAVI (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: ndvi,
+  description: "Austin_LC08_027039_NDVI_2012",
+  folder: "GEE_AUSTIN_NDVI (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: wdrvi,
+  description: "Austin_LC08_027039_WDRVI_2012",
+  folder: "GEE_AUSTIN_WDRVI (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: nr,
+  description: "Austin_LC08_027039_NR_2012",
+  folder: "GEE_AUSTIN_NR (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: gndvi,
+  description: "Austin_LC08_027039_GNDVI_2012",
+  folder: "GEE_AUSTIN_GNDVI (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: dvi,
+  description: "Austin_LC08_027039_DVI_2012",
+  folder: "GEE_AUSTIN_DVI (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: rdvi,
+  description: "Austin_LC08_027039_RDVI_2012",
+  folder: "GEE_AUSTIN_RDVI (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: nmdi,
+  description: "Austin_LC08_027039_NMDI_2012",
+  folder: "GEE_AUSTIN_NMDI (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: sipi,
+  description: "Austin_LC08_027039_SIPI_2012",
+  folder: "GEE_AUSTIN_SIPI (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: ng,
+  description: "Austin_LC08_027039_NG_2012",
+  folder: "GEE_AUSTIN_NG (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: grvi,
+  description: "Austin_LC08_027039_GRVI_2012",
+  folder: "GEE_AUSTIN_GRVI (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: msavi,
+  description: "Austin_LC08_027039_MSAVI_2012",
+  folder: "GEE_AUSTIN_MSAVI (2012-2022)",
+});
+
+Export.image.toDrive({
+  image: psri,
+  description: "Austin_LC08_027039_PSRI_2012",
+  folder: "GEE_AUSTIN_PSRI (2012-2022)",
+});
