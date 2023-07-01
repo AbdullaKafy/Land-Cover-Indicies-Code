@@ -1,0 +1,38 @@
+// Add the region of interest to the map
+Map.addLayer(Austin);
+Map.centerObject(Austin, 10);
+
+// Search for Landsat 8 images
+var landsat8sr = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
+ .filterBounds(Austin)
+ .filterDate('2013-01-1','2013-12-30')
+ .filterMetadata('CLOUD_COVER', 'less_than', 5)
+
+// Add the image collection to the map
+Map.addLayer(landsat8sr);
+print(landsat8sr);
+
+// Load a specific Landsat 8 image
+var image = ee.Image('LANDSAT/LC08/C02/T1_L2/LC08_027039_20131103')
+.clip(Austin)
+print(image, 'image')
+
+// Calculate NDBSI
+var swir1 = image.select('SR_B6');
+var swir2 = image.select('SR_B7');
+var ndbsi = image.expression(
+  '(SWIR1 - SWIR2) / (SWIR1 + SWIR2)', {
+  'SWIR1': swir1,
+  'SWIR2': swir2
+});
+
+// Visualize the NDBSI result
+var ndbsiParams = {min: -1, max: 1, palette: ['blue', 'white', 'green']};
+Map.addLayer(ndbsi, ndbsiParams, 'NDBSI');
+
+// Exporting result
+Export.image.toDrive({
+  image: ndbsi,
+  description: "Austin_LC08_027039_NDBSI_2012",
+  folder: "GEE_AUSTIN_NDBSI (2012-2022)",
+});
