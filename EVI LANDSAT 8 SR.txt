@@ -1,0 +1,40 @@
+// Add the region of interest to the map
+Map.addLayer(Austin);
+Map.centerObject(Austin, 10);
+
+// Search for Landsat 8 images
+var landsat8sr = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
+ .filterBounds(Austin)
+ .filterDate('2022-01-1','2022-12-30')
+ .filterMetadata('CLOUD_COVER', 'less_than', 1)
+
+// Add the image collection to the map
+Map.addLayer(landsat8sr);
+print(landsat8sr);
+
+// Load a specific Landsat 8 image
+var image = ee.Image('LANDSAT/LC08/C02/T1_L2/LC08_027039_20221128')
+.clip(Austin)
+print(image, 'image')
+
+// Calculate EVI
+var nir = image.select('SR_B5');
+var red = image.select('SR_B4');
+var blue = image.select('SR_B2');
+var evi = image.expression(
+  '2.5 * ((NIR - RED) / (NIR + 6*RED - 7.5*BLUE + 1))', {
+  'NIR': nir,
+  'RED': red,
+  'BLUE': blue
+});
+
+// Visualize the EVI result
+var eviParams = {min: -1, max: 1, palette: ['blue', 'white', 'green']};
+Map.addLayer(evi, eviParams, 'EVI');
+
+// Exporting result
+Export.image.toDrive({
+  image: evi,
+  description: "Austin_LC08_027039_EVI_2022",
+  folder: "GEE_AUSTIN_EVI (2012-2022)",
+});
